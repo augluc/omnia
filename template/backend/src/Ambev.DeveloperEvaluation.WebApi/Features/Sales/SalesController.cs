@@ -1,8 +1,10 @@
 ﻿using Ambev.DeveloperEvaluation.Application.Sales.CreateSale;
+using Ambev.DeveloperEvaluation.Application.Sales.DeleteSale;
 using Ambev.DeveloperEvaluation.Application.Sales.GetSale;
 using Ambev.DeveloperEvaluation.Application.Sales.UpdateSale;
 using Ambev.DeveloperEvaluation.WebApi.Common;
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.CreateSale;
+using Ambev.DeveloperEvaluation.WebApi.Features.Sales.DeleteSale;
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.GetSale;
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.UpdateSale;
 using AutoMapper;
@@ -106,6 +108,31 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales
                 Success = true,
                 Message = "Venda atualizada com sucesso.",
                 Data = _mapper.Map<UpdateSaleResponse>(response)
+            });
+        }
+
+        /// <summary>
+        /// Apaga ou Cancela uma Venda.
+        /// </summary>
+        /// <param name="id">O ID único da venda a ser apagada/cancelada</param>
+        /// <param name="cancellationToken">Token de cancelamento</param>
+        /// <returns>Indicador de sucesso da operação</returns>
+        [HttpDelete("{id}")]
+        [ProducesResponseType(typeof(ApiResponseWithData<DeleteSaleResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteSale([FromRoute] Guid id, CancellationToken cancellationToken)
+        {
+            var request = new DeleteSaleRequest { Id = id };
+            var command = _mapper.Map<DeleteSaleCommand>(request);
+
+            var response = await _mediator.Send(command, cancellationToken);
+
+            return Ok(new ApiResponseWithData<DeleteSaleResponse>
+            {
+                Success = true,
+                Message = "Venda apagada/cancelada com sucesso.",
+                Data = _mapper.Map<DeleteSaleResponse>(response)
             });
         }
     }
