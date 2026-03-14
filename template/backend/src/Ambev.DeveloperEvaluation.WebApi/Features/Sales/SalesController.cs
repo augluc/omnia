@@ -55,6 +55,32 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales
         }
 
         /// <summary>
+        /// Recupera uma lista paginada de Vendas.
+        /// </summary>
+        /// <param name="request">Parâmetros de paginação e ordenação via Query String</param>
+        /// <param name="cancellationToken">Token de cancelamento</param>
+        /// <returns>Uma lista paginada de vendas</returns>
+        [HttpGet]
+        [ProducesResponseType(typeof(PaginatedResponse<Features.Sales.ListSales.ListSalesResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ListSales([FromQuery] Features.Sales.ListSales.ListSalesRequest request, CancellationToken cancellationToken)
+        {
+            var query = _mapper.Map<Application.Sales.ListSales.ListSalesQuery>(request);
+
+            var result = await _mediator.Send(query, cancellationToken);
+
+            var responseItems = _mapper.Map<List<Features.Sales.ListSales.ListSalesResponse>>(result.Items);
+
+            var paginatedList = new PaginatedList<Features.Sales.ListSales.ListSalesResponse>(
+                responseItems,
+                result.TotalCount,
+                request.Page,
+                request.Size);
+
+            return OkPaginated(paginatedList);
+        }
+
+        /// <summary>
         /// Cria uma nova Venda.
         /// </summary>
         /// <param name="request">Os dados da venda.</param>

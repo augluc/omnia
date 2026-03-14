@@ -10,6 +10,8 @@ namespace Ambev.DeveloperEvaluation.Domain.Repositories
         Task<Sale> CreateAsync(Sale sale, CancellationToken cancellationToken = default);
         Task<Sale?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
         Task<Sale> UpdateAsync(Sale sale, CancellationToken cancellationToken = default);
-        Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default); // Será usado para aplicar o soft-delete do Aggregate se necessário no BD
+        Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<IEnumerable<Sale>> GetPagedAsync(int page, int size, string order, CancellationToken cancellationToken = default);
+        Task<int> GetTotalCountAsync(CancellationToken cancellationToken = default);
     }
 }

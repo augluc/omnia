@@ -47,5 +47,33 @@ namespace Ambev.DeveloperEvaluation.ORM.Repositories
             await _context.SaveChangesAsync(cancellationToken);
             return true;
         }
+
+        public async Task<IEnumerable<Sale>> GetPagedAsync(int page, int size, string order, CancellationToken cancellationToken = default)
+        {
+            var query = _context.Sales.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(order))
+            {
+                if (order.Contains("desc", StringComparison.OrdinalIgnoreCase))
+                    query = query.OrderByDescending(s => s.SaleDate);
+                else
+                    query = query.OrderBy(s => s.SaleDate);
+            }
+            else
+            {
+                query = query.OrderByDescending(s => s.SaleDate);
+            }
+
+            return await query
+                .Include(s => s.Products)
+                .Skip((page - 1) * size)
+                .Take(size)
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<int> GetTotalCountAsync(CancellationToken cancellationToken = default)
+        {
+            return await _context.Sales.CountAsync(cancellationToken);
+        }
     }
 }
