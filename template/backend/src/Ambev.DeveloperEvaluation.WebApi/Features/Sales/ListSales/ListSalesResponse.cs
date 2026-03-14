@@ -7,7 +7,7 @@
         public DateTime SaleDate { get; set; }
         public string CustomerName { get; set; } = string.Empty;
         public string BranchName { get; set; } = string.Empty;
-        public decimal TotalAmount { get; set; }
+        public long TotalAmount { get; set; }
         public bool IsCancelled { get; set; }
     }
 }
