@@ -8,6 +8,7 @@ using Ambev.DeveloperEvaluation.Domain.Repositories;
 using AutoMapper;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale
 {
@@ -18,11 +19,16 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale
     {
         private readonly ISaleRepository _saleRepository;
         private readonly IMapper _mapper;
+        private readonly ILogger<CreateSaleHandler> _logger;
 
-        public CreateSaleHandler(ISaleRepository saleRepository, IMapper mapper)
+        public CreateSaleHandler(
+            ISaleRepository saleRepository,
+            IMapper mapper,
+            ILogger<CreateSaleHandler> logger)
         {
             _saleRepository = saleRepository;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<CreateSaleResult> Handle(CreateSaleCommand request, CancellationToken cancellationToken)
@@ -55,6 +61,10 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale
             }
 
             var createdSale = await _saleRepository.CreateAsync(sale, cancellationToken);
+
+            _logger.LogInformation(
+                "--- EVENTO DE DOMÍNIO PUBLICADO --- | SaleCreatedEvent disparado para a Venda ID: {SaleId}.",
+                createdSale.Id);
 
             return _mapper.Map<CreateSaleResult>(createdSale);
         }

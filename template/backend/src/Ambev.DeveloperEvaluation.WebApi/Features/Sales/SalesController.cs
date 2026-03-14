@@ -135,5 +135,30 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales
                 Data = _mapper.Map<DeleteSaleResponse>(response)
             });
         }
+
+        /// <summary>
+        /// Cancela um Item específico de uma Venda.
+        /// </summary>
+        /// <param name="id">O ID único da venda</param>
+        /// <param name="itemId">O ID único do item da venda a ser cancelado</param>
+        /// <param name="cancellationToken">Token de cancelamento</param>
+        /// <returns>Indicador de sucesso da operação</returns>
+        [HttpDelete("{id}/items/{itemId}")]
+        [ProducesResponseType(typeof(ApiResponseWithData<Features.Sales.CancelSaleItem.CancelSaleItemResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> CancelSaleItem([FromRoute] Guid id, [FromRoute] Guid itemId, CancellationToken cancellationToken)
+        {
+            var command = new Application.Sales.CancelSaleItem.CancelSaleItemCommand(id, itemId);
+
+            var response = await _mediator.Send(command, cancellationToken);
+
+            return Ok(new ApiResponseWithData<Features.Sales.CancelSaleItem.CancelSaleItemResponse>
+            {
+                Success = true,
+                Message = "Item da venda cancelado com sucesso.",
+                Data = _mapper.Map<Features.Sales.CancelSaleItem.CancelSaleItemResponse>(response)
+            });
+        }
     }
 }
