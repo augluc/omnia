@@ -1,6 +1,8 @@
 ﻿using Ambev.DeveloperEvaluation.Application.Sales.CreateSale;
+using Ambev.DeveloperEvaluation.Application.Sales.GetSale;
 using Ambev.DeveloperEvaluation.WebApi.Common;
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.CreateSale;
+using Ambev.DeveloperEvaluation.WebApi.Features.Sales.GetSale;
 using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -21,6 +23,31 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales
         {
             _mediator = mediator;
             _mapper = mapper;
+        }
+
+        /// <summary>
+        /// Recupera uma Venda pelo seu ID
+        /// </summary>
+        /// <param name="id">O ID único da venda</param>
+        /// <param name="cancellationToken">Token de cancelamento</param>
+        /// <returns>Os detalhes da venda caso exista</returns>
+        [HttpGet("{id}")]
+        [ProducesResponseType(typeof(ApiResponseWithData<GetSaleResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetSale([FromRoute] Guid id, CancellationToken cancellationToken)
+        {
+            var request = new GetSaleRequest { Id = id };
+
+            var command = new GetSaleCommand(request.Id);
+            var response = await _mediator.Send(command, cancellationToken);
+
+            return Ok(new ApiResponseWithData<GetSaleResponse>
+            {
+                Success = true,
+                Message = "Venda recuperada com sucesso.",
+                Data = _mapper.Map<GetSaleResponse>(response)
+            });
         }
 
         /// <summary>
