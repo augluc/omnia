@@ -1,86 +1,86 @@
 # Developer Evaluation Project - DeveloperStore API
 
-Este projeto é uma API desenvolvida para gerir o registo de vendas (Sales) da DeveloperStore. A aplicação foi construída utilizando princípios de **Domain-Driven Design (DDD)**, **Clean Architecture** e o padrão **CQRS**, garantindo uma base de código escalável, testável e de fácil manutenção.
+This project is an API developed to manage sales records (Sales) for the DeveloperStore. The application was built using **Domain-Driven Design (DDD)** principles, **Clean Architecture**, and the **CQRS** pattern, ensuring a scalable, testable, and easily maintainable codebase.
 
-## 🚀 Tecnologias e Padrões Utilizados
+## 🚀 Technologies and Patterns Used
 
 - **.NET 8** (C#)
 - **Entity Framework Core** (ORM)
-- **PostgreSQL** (Base de dados relacional)
-- **MediatR** (Implementação do padrão CQRS)
-- **AutoMapper** (Mapeamento de objetos)
-- **FluentValidation** (Validação de dados na camada de aplicação)
-- **xUnit, NSubstitute e Bogus** (Testes unitários e funcionais)
-- **Swagger/OpenAPI** (Documentação da API)
+- **PostgreSQL** (Relational database)
+- **MediatR** (CQRS pattern implementation)
+- **AutoMapper** (Object mapping)
+- **FluentValidation** (Data validation in the application layer)
+- **xUnit, NSubstitute, and Bogus** (Unit and functional testing)
+- **Swagger/OpenAPI** (API documentation)
 
-## 🏗️ Arquitetura do Projeto
+## 🏗️ Project Architecture
 
-O projeto está dividido nas seguintes camadas principais (Clean Architecture):
+The project is divided into the following main layers (Clean Architecture):
 
-- **Domain:** Contém as entidades principais de negócio (`Sale`, `SaleItem`, `User`), Enums, Eventos de Domínio e as interfaces de repositórios.
-- **Application:** Contém as regras de negócio orquestradas pelos Handlers do MediatR. Dividida em Commands (Escrita/Alteração) e Queries (Leitura), juntamente com a validação (FluentValidation).
-- **ORM (Infrastructure):** Responsável pelo acesso a dados, mapeamento das entidades para o banco de dados via Entity Framework Core e implementações dos repositórios.
-- **WebApi:** A camada de apresentação, que expõe os endpoints RESTful através de Controllers e lida com os DTOs de Request e Response.
+- **Domain:** Contains the main business entities (`Sale`, `SaleItem`, `User`), Enums, Domain Events, and repository interfaces.
+- **Application:** Contains the business rules orchestrated by MediatR Handlers. Divided into Commands (Write/Update) and Queries (Read), along with validation (FluentValidation).
+- **ORM (Infrastructure):** Responsible for data access, mapping entities to the database via Entity Framework Core, and repository implementations.
+- **WebApi:** The presentation layer, which exposes RESTful endpoints through Controllers and handles Request and Response DTOs.
 
-## ⚙️ Como Executar o Projeto
+## ⚙️ How to Run the Project
 
-### Pré-requisitos
+### Prerequisites
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- [Docker e Docker Compose](https://www.docker.com/) (para rodar a base de dados localmente de forma simples)
+- [Docker and Docker Compose](https://www.docker.com/) (to easily run the database locally)
 
-### Passos para execução
+### Execution Steps
 
-1. **Clone o repositório**
+1. **Clone the repository**
    ```bash
-   git clone <url-do-repositorio>
-   cd <nome-da-pasta-do-projeto>
+   git clone <repository-url>
+   cd <project-folder-name>
 
-2. **Suba a infraestrutura (Base de Dados)**
-Na raiz do projeto, execute o docker-compose para iniciar o PostgreSQL:
+2. **Start the infrastructure (Database)**
+At the root of the project, run docker-compose to start PostgreSQL:
    ```bash
    docker-compose up -d
 
-3. **Aplique as Migrations**
-Navegue até a pasta da API e aplique as migrações para criar as tabelas na base de dados:
+3. **Apply the Migrations**
+Navigate to the API folder and apply the migrations to create the database tables:
    ```bash
    cd src/Ambev.DeveloperEvaluation.WebApi
    dotnet ef database update --project ../Ambev.DeveloperEvaluation.ORM
 
-4. **Inicie a Aplicação**
-Ainda na pasta WebApi, execute o projeto:
+4. **Start the Application**
+Still in the WebApi folder, run the project:
    ```bash
    dotnet run
 
-5. **Acesse a Documentação (Swagger)**
-Abra o seu navegador e acesse:
-   https://localhost:8080/swagger (A porta será exibida no terminal após o dotnet run).
+5. **Access the Documentation (Swagger)**
+Open your browser and access:
+   https://localhost:8081/swagger (A porta será exibida no terminal após o dotnet run).
 
-## 🧠 Decisões Técnicas e Padrões Adotados
+## 🧠 Technical Decisions and Adopted Patterns
 
-Durante o desenvolvimento deste projeto, algumas decisões arquiteturais foram tomadas para alinhar com os requisitos de negócio e boas práticas.
+During the development of this project, several architectural decisions were made to align with business requirements and best practices.
 
-1. Padrão "External Identities" (Identidades Externas)
-Como o projeto utiliza DDD, é comum precisarmos de referenciar entidades de outros domínios ou microserviços (como Customer ou Branch). Para evitar o acoplamento direto ou a complexidade de manter várias agregações sincronizadas, utilizámos o padrão External Identities.
+1. "External Identities" Pattern
+Since the project uses DDD, we often need to reference entities from other domains or microservices (like Customer or Branch). To avoid direct coupling or the complexity of keeping multiple aggregates synchronized, we used the External Identities pattern.
 
-- **Como funciona:** Na entidade Sale, guardamos o ID da entidade externa (CustomerId, BranchId) e realizamos a desnormalização da descrição dessa entidade (ex: CustomerName, BranchName).
+- How it works: In the Sale entity, we store the ID of the external entity (CustomerId, BranchId) and denormalize the description of that entity (e.g., CustomerName, BranchName).
 
-- **Vantagem:** Isso permite que o domínio de Vendas consulte e exiba informações básicas sem a necessidade de fazer joins complexos ou chamadas síncronas a outras APIs em tempo de execução, aumentando a performance e a resiliência.
+- Advantage: This allows the Sales domain to query and display basic information without needing complex joins or synchronous calls to other APIs at runtime, thereby increasing performance and resilience.
 
-2. CQRS com MediatR
-A operação de CRUD não interage diretamente com os repositórios através dos Controllers. Em vez disso, a API emite intenções (Commands para alterações e Queries para leituras) que são processadas por Handlers dedicados via MediatR.
+2. CQRS with MediatR
+CRUD operations do not interact directly with repositories through Controllers. Instead, the API emits intentions (Commands for changes and Queries for reads) that are processed by dedicated Handlers via MediatR.
 
-- **Vantagem:** Desacoplamento entre a apresentação e as regras de negócio. Cada operação (Create, Update, Get, Delete) tem o seu próprio escopo isolado de validação e execução, cumprindo o Princípio da Responsabilidade Única (SRP).
+- Advantage: Decoupling between presentation and business rules. Each operation (Create, Update, Get, Delete) has its own isolated scope for validation and execution, adhering to the Single Responsibility Principle (SRP).
 
-3. Simulação de Eventos de Domínio (Domain Events)
-O domínio de Vendas prevê a publicação de eventos sempre que o estado de uma venda é alterado (ex: SaleCreatedEvent, SaleModifiedEvent, SaleCancelledEvent).
+3. Domain Events Simulation
+The Sales domain anticipates publishing events whenever a sale's state changes (e.g., SaleCreatedEvent, SaleModifiedEvent, SaleCancelledEvent).
 
-- **Decisão:** Como o uso de um Message Broker real (como RabbitMQ ou Kafka) não era um requisito obrigatório para este protótipo, a publicação dos eventos foi simulada utilizando o ILogger no final de cada operação com sucesso nos Handlers (Application Layer).
+- Decision: Since using a real Message Broker (like RabbitMQ or Kafka) was not a mandatory requirement for this prototype, event publishing was simulated using ILogger at the end of every successful operation in the Handlers (Application Layer).
 
-- **Vantagem:** Esta abordagem demonstra o entendimento de arquiteturas orientadas a eventos (Event-Driven Architecture) e deixa a estrutura totalmente preparada (plug and play) para a futura injeção de um Message Bus real sem a necessidade de alterar a lógica de negócio principal.
+- Advantage: This approach demonstrates an understanding of Event-Driven Architecture and leaves the structure fully prepared (plug and play) for future injection of a real Message Bus without needing to alter the core business logic.
 
-## 🧪 Testes
+## 🧪 Tests
 
-Para executar a suíte de testes unitários e garantir que as regras de negócio e validações funcionam como esperado, execute o seguinte comando na raiz do projeto:
+To run the unit test suite and ensure that business rules and validations work as expected, execute the following command at the root of the project:
 
 ```bash
    dotnet test
