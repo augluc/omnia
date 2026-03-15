@@ -75,5 +75,90 @@ namespace Ambev.DeveloperEvaluation.ORM.Repositories
         {
             return await _context.Sales.CountAsync(cancellationToken);
         }
+
+        public async Task<IEnumerable<Sale>> GetPagedAsync(int page, int size, string order, SaleFilters? filters = null, CancellationToken cancellationToken = default)
+        {
+            var query = _context.Sales.AsQueryable();
+
+            query = ApplyFilters(query, filters);
+
+            if (!string.IsNullOrWhiteSpace(order))
+            {
+                if (order.Contains("desc", StringComparison.OrdinalIgnoreCase))
+                    query = query.OrderByDescending(s => s.SaleDate);
+                else
+                    query = query.OrderBy(s => s.SaleDate);
+            }
+            else
+            {
+                query = query.OrderByDescending(s => s.SaleDate);
+            }
+
+            return await query
+                .Include(s => s.Products)
+                .Skip((page - 1) * size)
+                .Take(size)
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<int> GetTotalCountAsync(SaleFilters? filters = null, CancellationToken cancellationToken = default)
+        {
+            var query = _context.Sales.AsQueryable();
+
+            query = ApplyFilters(query, filters);
+
+            return await query.CountAsync(cancellationToken);
+        }
+
+        private IQueryable<Sale> ApplyFilters(IQueryable<Sale> query, SaleFilters? filters)
+        {
+            if (filters == null) return query;
+
+            if (!string.IsNullOrWhiteSpace(filters.SaleNumber))
+                query = ApplyStringFilter(query, s => s.SaleNumber, filters.SaleNumber);
+
+            if (!string.IsNullOrWhiteSpace(filters.CustomerName))
+                query = ApplyStringFilter(query, s => s.CustomerName, filters.CustomerName);
+
+            if (!string.IsNullOrWhiteSpace(filters.BranchName))
+                query = ApplyStringFilter(query, s => s.BranchName, filters.BranchName);
+
+            if (filters.MinTotalAmount.HasValue)
+                query = query.Where(s => s.TotalSaleAmount >= filters.MinTotalAmount.Value);
+
+            if (filters.MaxTotalAmount.HasValue)
+                query = query.Where(s => s.TotalSaleAmount <= filters.MaxTotalAmount.Value);
+
+            if (filters.MinSaleDate.HasValue)
+                query = query.Where(s => s.SaleDate >= filters.MinSaleDate.Value);
+
+            if (filters.MaxSaleDate.HasValue)
+                query = query.Where(s => s.SaleDate <= filters.MaxSaleDate.Value);
+
+            return query;
+        }
+
+        private IQueryable<Sale> ApplyStringFilter(IQueryable<Sale> query, System.Linq.Expressions.Expression<Func<Sale, string>> propertySelector, string filterValue)
+        {
+            var propertyName = ((System.Linq.Expressions.MemberExpression)propertySelector.Body).Member.Name;
+
+            if (filterValue.StartsWith("*") && filterValue.EndsWith("*"))
+            {
+                var val = filterValue.Trim('*');
+                return query.Where(s => EF.Property<string>(s, propertyName).Contains(val));
+            }
+            if (filterValue.StartsWith("*"))
+            {
+                var val = filterValue.TrimStart('*');
+                return query.Where(s => EF.Property<string>(s, propertyName).EndsWith(val));
+            }
+            if (filterValue.EndsWith("*"))
+            {
+                var val = filterValue.TrimEnd('*');
+                return query.Where(s => EF.Property<string>(s, propertyName).StartsWith(val));
+            }
+
+            return query.Where(s => EF.Property<string>(s, propertyName) == filterValue);
+        }
     }
 }

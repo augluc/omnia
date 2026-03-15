@@ -22,8 +22,19 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.ListSales
 
         public async Task<ListSalesResult> Handle(ListSalesQuery request, CancellationToken cancellationToken)
         {
-            var sales = await _saleRepository.GetPagedAsync(request.Page, request.Size, request.Order, cancellationToken);
-            var totalCount = await _saleRepository.GetTotalCountAsync(cancellationToken);
+            var filters = new SaleFilters
+            {
+                SaleNumber = request.SaleNumber,
+                CustomerName = request.CustomerName,
+                BranchName = request.BranchName,
+                MinTotalAmount = request.MinTotalAmount,
+                MaxTotalAmount = request.MaxTotalAmount,
+                MinSaleDate = request.MinSaleDate,
+                MaxSaleDate = request.MaxSaleDate
+            };
+
+            var sales = await _saleRepository.GetPagedAsync(request.Page, request.Size, request.Order, filters, cancellationToken);
+            var totalCount = await _saleRepository.GetTotalCountAsync(filters, cancellationToken);
 
             return new ListSalesResult
             {
